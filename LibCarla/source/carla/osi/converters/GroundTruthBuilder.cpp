@@ -4,13 +4,13 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "carla/osi/GroundTruthBuilder.h"
+#include "carla/osi/converters/GroundTruthBuilder.h"
 
-#include "carla/osi/ActorClassification.h"
-#include "carla/osi/CoordinateTransform.h"
-#include "carla/osi/EnvironmentConverter.h"
-#include "carla/osi/MCAPRecorder.h"
-#include "carla/osi/TrafficLightConverter.h"
+#include "carla/osi/features/MovingObjectFeature.h"
+#include "carla/osi/features/TrafficLightFeature.h"
+#include "carla/osi/features/EnvironmentFeature.h"
+#include "carla/osi/io/MCAPRecorder.h"
+#include "carla/osi/utils/CoordinateTransform.h"
 
 #include "carla/geom/BoundingBox.h"
 #include "carla/geom/Transform.h"

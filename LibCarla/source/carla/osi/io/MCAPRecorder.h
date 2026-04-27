@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "carla/osi/GroundTruthBuilder.h"
+#include "carla/osi/converters/GroundTruthBuilder.h"
 
 #include <memory>
 #include <string>

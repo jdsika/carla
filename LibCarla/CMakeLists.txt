@@ -491,13 +491,13 @@ endif ()
 if (ENABLE_OSI)
 
   file (
-    GLOB
+    GLOB_RECURSE
     LIBCARLA_OSI_SOURCES
     ${LIBCARLA_SOURCE_PATH}/carla/osi/*.cpp
   )
 
   file (
-    GLOB
+    GLOB_RECURSE
     LIBCARLA_OSI_HEADERS
     ${LIBCARLA_SOURCE_PATH}/carla/osi/*.h
   )

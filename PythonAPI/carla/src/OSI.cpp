@@ -6,8 +6,8 @@
 
 #include <PythonAPI.h>
 
-#include <carla/osi/GroundTruthBuilder.h>
-#include <carla/osi/MCAPRecorder.h>
+#include <carla/osi/converters/GroundTruthBuilder.h>
+#include <carla/osi/io/MCAPRecorder.h>
 
 static void OpenRecorder(
     carla::osi::MCAPRecorder &self,

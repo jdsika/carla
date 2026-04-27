@@ -4,7 +4,7 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "carla/osi/MCAPRecorder.h"
+#include "carla/osi/io/MCAPRecorder.h"
 
 #include "carla/Logging.h"
 
