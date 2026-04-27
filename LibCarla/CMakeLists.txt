@@ -481,3 +481,57 @@ if (BUILD_LIBCARLA_TESTS)
   endif ()
 
 endif ()
+
+
+
+# ================================
+#   OSI (Open Simulation Interface) support
+# ================================
+
+if (ENABLE_OSI)
+
+  file (
+    GLOB
+    LIBCARLA_OSI_SOURCES
+    ${LIBCARLA_SOURCE_PATH}/carla/osi/*.cpp
+  )
+
+  file (
+    GLOB
+    LIBCARLA_OSI_HEADERS
+    ${LIBCARLA_SOURCE_PATH}/carla/osi/*.h
+  )
+
+  carla_add_library (
+    carla-osi
+    "Build the CARLA OSI GroundTruth recording module."
+    ${LIBCARLA_OSI_SOURCES}
+    ${LIBCARLA_OSI_HEADERS}
+  )
+
+  target_include_directories (
+    carla-osi PUBLIC
+    ${LIBCARLA_SOURCE_PATH}
+  )
+
+  target_link_libraries (
+    carla-osi PUBLIC
+    OSIUtilities::OSIUtilities
+  )
+
+  target_compile_definitions (
+    carla-osi PUBLIC
+    WITH_OSI
+  )
+
+  if (BUILD_CARLA_CLIENT)
+    target_link_libraries (carla-client PUBLIC carla-osi)
+    target_compile_definitions (carla-client PUBLIC WITH_OSI)
+  endif ()
+
+  if (BUILD_CARLA_SERVER)
+    target_link_libraries (carla-server PUBLIC carla-osi)
+    target_compile_definitions (carla-server PUBLIC WITH_OSI)
+  endif ()
+
+endif ()

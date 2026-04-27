@@ -69,6 +69,12 @@ carla_option (
 )
 
 carla_option (
+  ENABLE_OSI
+  "Enable OSI (Open Simulation Interface) GroundTruth MCAP recording via asam-osi-utilities."
+  OFF
+)
+
+carla_option (
   ENABLE_RSS
   "Enable RSS components (ad-rss-lib)"
   OFF
@@ -476,4 +482,18 @@ carla_string_option (
   CARLA_FOONATHAN_MEMORY_VENDOR_TAG
   "Target foonathan_memory_vendor git tag."
   ${CARLA_FOONATHAN_MEMORY_VENDOR_VERSION}
+)
+
+# ==== ASAM OSI UTILITIES ====
+
+carla_string_option (
+  CARLA_OSI_UTILITIES_VERSION
+  "Target asam-osi-utilities version."
+  main
+)
+
+carla_string_option (
+  CARLA_OSI_UTILITIES_TAG
+  "Target asam-osi-utilities git tag."
+  ${CARLA_OSI_UTILITIES_VERSION}
 )

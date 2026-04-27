@@ -1,0 +1,145 @@
+// Copyright (c) 2026 Computer Vision Center (CVC) at the Universitat Autonoma
+// de Barcelona (UAB).
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
+#include "carla/osi/GroundTruthBuilder.h"
+
+#include "carla/osi/ActorClassification.h"
+#include "carla/osi/CoordinateTransform.h"
+#include "carla/osi/EnvironmentConverter.h"
+#include "carla/osi/MCAPRecorder.h"
+#include "carla/osi/TrafficLightConverter.h"
+
+#include "carla/geom/BoundingBox.h"
+#include "carla/geom/Transform.h"
+#include "carla/geom/Vector3D.h"
+#include "carla/rpc/TrafficLightState.h"
+#include "carla/rpc/WeatherParameters.h"
+
+namespace carla {
+namespace osi {
+
+GroundTruthBuilder::GroundTruthBuilder() {
+  SetVersion(3, 8, 0);
+}
+
+void GroundTruthBuilder::Reset() {
+  gt_.Clear();
+  SetVersion(3, 8, 0);
+}
+
+void GroundTruthBuilder::SetVersion(
+    uint32_t major,
+    uint32_t minor,
+    uint32_t patch) {
+  auto *v = gt_.mutable_version();
+  v->set_version_major(major);
+  v->set_version_minor(minor);
+  v->set_version_patch(patch);
+}
+
+void GroundTruthBuilder::SetTimestamp(double elapsed_seconds) {
+  CoordinateTransform::ToOSI(elapsed_seconds, *gt_.mutable_timestamp());
+}
+
+void GroundTruthBuilder::SetHostVehicleId(uint64_t actor_id) {
+  gt_.mutable_host_vehicle_id()->set_value(actor_id);
+}
+
+void GroundTruthBuilder::SetMapReference(const std::string &opendrive_name) {
+  gt_.set_map_reference(opendrive_name);
+}
+
+void GroundTruthBuilder::AddMovingObject(
+    uint64_t id,
+    const std::string &type_id,
+    const geom::Transform &transform,
+    const geom::Vector3D &velocity,
+    const geom::Vector3D &acceleration,
+    const geom::Vector3D &angular_velocity,
+    const geom::Vector3D &bbox_extent,
+    const geom::Location &bbox_offset) {
+
+  auto *obj = gt_.add_moving_object();
+
+  // Identifier
+  obj->mutable_id()->set_value(id);
+
+  // Type classification
+  auto osi_type = ActorClassification::GetMovingObjectType(type_id);
+  obj->set_type(osi_type);
+
+  if (osi_type == osi3::MovingObject::TYPE_VEHICLE) {
+    auto *vc = obj->mutable_vehicle_classification();
+    vc->set_type(ActorClassification::GetVehicleType(type_id));
+  }
+
+  // Base parameters
+  auto *base = obj->mutable_base();
+
+  // Position (bounding box center in world coordinates)
+  auto world_center = transform;
+  world_center.location += geom::Location(
+      transform.GetForwardVector() * bbox_offset.x +
+      transform.GetRightVector() * bbox_offset.y +
+      transform.GetUpVector() * bbox_offset.z);
+  CoordinateTransform::ToOSI(world_center.location, *base->mutable_position());
+
+  // Orientation
+  CoordinateTransform::ToOSI(transform.rotation, *base->mutable_orientation());
+
+  // Velocity
+  CoordinateTransform::ToOSI(velocity, *base->mutable_velocity());
+
+  // Acceleration
+  CoordinateTransform::ToOSI(acceleration, *base->mutable_acceleration());
+
+  // Angular velocity → orientation rate
+  CoordinateTransform::AngularVelocityToOSI(
+      angular_velocity, *base->mutable_orientation_rate());
+
+  // Bounding box dimensions
+  CoordinateTransform::ExtentToOSIDimension(
+      bbox_extent, *base->mutable_dimension());
+
+  // Model reference (the CARLA blueprint type_id)
+  obj->set_model_reference(type_id);
+}
+
+void GroundTruthBuilder::AddTrafficLight(
+    uint64_t id,
+    const geom::Transform &transform,
+    rpc::TrafficLightState state) {
+
+  auto *tl = gt_.add_traffic_light();
+
+  tl->mutable_id()->set_value(id);
+
+  auto *base = tl->mutable_base();
+  CoordinateTransform::ToOSI(transform.location, *base->mutable_position());
+  CoordinateTransform::ToOSI(transform.rotation, *base->mutable_orientation());
+
+  auto *classification = tl->mutable_classification();
+  classification->set_color(TrafficLightConverter::ToOSIColor(state));
+  classification->set_mode(TrafficLightConverter::ToOSIMode(state));
+}
+
+void GroundTruthBuilder::SetEnvironment(
+    const rpc::WeatherParameters &weather) {
+  EnvironmentConverter::ToOSI(weather, *gt_.mutable_environmental_conditions());
+}
+
+osi3::GroundTruth GroundTruthBuilder::Build() {
+  return std::move(gt_);
+}
+
+void GroundTruthBuilder::BuildAndWrite(MCAPRecorder &recorder) {
+  recorder.WriteFrame(gt_);
+  gt_.Clear();
+  SetVersion(3, 8, 0);
+}
+
+} // namespace osi
+} // namespace carla

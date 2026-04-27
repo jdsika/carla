@@ -106,6 +106,14 @@ if (ENABLE_RSS)
   )
 endif ()
 
+if (ENABLE_OSI)
+  list (
+    APPEND
+    PYTHON_API_SOURCES
+    ${CARLA_PYTHON_API_SOURCE_PATH}/OSI.cpp
+  )
+endif ()
+
 set (
   USE_LIMITED_API
   OFF
@@ -204,3 +212,18 @@ target_link_libraries (
   $<TARGET_FILE:zlibstatic>
   $<TARGET_FILE:rpc>
 )
+
+if (ENABLE_OSI)
+  target_include_directories (
+    ${SKBUILD_PROJECT_NAME} SYSTEM PRIVATE
+    $<TARGET_PROPERTY:carla-osi,INTERFACE_INCLUDE_DIRECTORIES>
+  )
+  target_compile_definitions (
+    ${SKBUILD_PROJECT_NAME} PRIVATE
+    WITH_OSI
+  )
+  target_link_libraries (
+    ${SKBUILD_PROJECT_NAME} PUBLIC
+    $<TARGET_FILE:carla-osi>
+  )
+endif ()

@@ -288,4 +288,17 @@ if (BUILD_LIBCARLA_TESTS)
   )
 endif ()
 
+if (ENABLE_OSI)
+  # ==== ASAM OSI UTILITIES ====
+  carla_dependency_option (BUILD_EXAMPLES OFF)
+  carla_dependency_option (BUILD_TESTING OFF)
+  carla_dependency_option (BUILD_DOCS OFF)
+  carla_git_dependency_add (
+    osi-utilities
+    ${CARLA_OSI_UTILITIES_TAG}
+    ""
+    https://github.com/lichtblick-suite/asam-osi-utilities.git
+  )
+endif ()
+
 carla_dependencies_make_available ()
