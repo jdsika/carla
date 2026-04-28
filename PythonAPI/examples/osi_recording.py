@@ -105,10 +105,16 @@ def main():
                     builder.add_traffic_light(
                         tl.id,
                         tl.get_transform(),
-                        tl.state,
+                        int(tl.state),
                     )
 
-            builder.set_environment(world.get_weather())
+            weather = world.get_weather()
+            builder.set_environment(
+                weather.precipitation,
+                weather.fog_density,
+                weather.sun_altitude_angle,
+                weather.sun_azimuth_angle,
+            )
             builder.write_to(recorder)
 
             if (frame_idx + 1) % 50 == 0:

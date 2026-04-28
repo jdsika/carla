@@ -15,8 +15,6 @@
 #include "carla/geom/BoundingBox.h"
 #include "carla/geom/Transform.h"
 #include "carla/geom/Vector3D.h"
-#include "carla/rpc/TrafficLightState.h"
-#include "carla/rpc/WeatherParameters.h"
 
 namespace carla {
 namespace osi {
@@ -111,7 +109,7 @@ void GroundTruthBuilder::AddMovingObject(
 void GroundTruthBuilder::AddTrafficLight(
     uint64_t id,
     const geom::Transform &transform,
-    rpc::TrafficLightState state) {
+    uint8_t state) {
 
   auto *tl = gt_.add_traffic_light();
 
@@ -127,8 +125,16 @@ void GroundTruthBuilder::AddTrafficLight(
 }
 
 void GroundTruthBuilder::SetEnvironment(
-    const rpc::WeatherParameters &weather) {
-  EnvironmentConverter::ToOSI(weather, *gt_.mutable_environmental_conditions());
+    float precipitation,
+    float fog_density,
+    float sun_altitude_angle,
+    float sun_azimuth_angle) {
+  EnvironmentConverter::ToOSI(
+      precipitation,
+      fog_density,
+      sun_altitude_angle,
+      sun_azimuth_angle,
+      *gt_.mutable_environmental_conditions());
 }
 
 osi3::GroundTruth GroundTruthBuilder::Build() {

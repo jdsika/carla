@@ -517,6 +517,7 @@ if (ENABLE_OSI)
   target_link_libraries (
     carla-osi PUBLIC
     OSIUtilities::OSIUtilities
+    rpc
   )
 
   target_compile_definitions (

@@ -25,11 +25,6 @@ namespace geom {
   class Vector3D;
 } // namespace geom
 
-namespace rpc {
-  enum class TrafficLightState : uint8_t;
-  class WeatherParameters;
-} // namespace rpc
-
 namespace osi {
 
 /// Incrementally builds an osi3::GroundTruth message for a single simulation
@@ -66,13 +61,18 @@ public:
       const geom::Location &bbox_offset);
 
   /// Add a traffic light with its current state.
+  /// @param state_value  The underlying uint8_t of rpc::TrafficLightState.
   void AddTrafficLight(
       uint64_t id,
       const geom::Transform &transform,
-      rpc::TrafficLightState state);
+      uint8_t state_value);
 
-  /// Set the environmental conditions from CARLA weather.
-  void SetEnvironment(const rpc::WeatherParameters &weather);
+  /// Set the environmental conditions from weather parameters.
+  void SetEnvironment(
+      float precipitation,
+      float fog_density,
+      float sun_altitude_angle,
+      float sun_azimuth_angle);
 
   /// Consume the built GroundTruth message.  The builder is left in a
   /// moved-from state; call Reset() before reusing.

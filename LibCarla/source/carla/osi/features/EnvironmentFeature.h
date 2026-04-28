@@ -6,29 +6,33 @@
 
 #pragma once
 
-#include "carla/rpc/WeatherParameters.h"
-
 #include <osi_environment.pb.h>
+
+#include <cstdint>
 
 namespace carla {
 namespace osi {
 
-/// Converts CARLA WeatherParameters to OSI EnvironmentalConditions.
+/// Converts CARLA weather values to OSI EnvironmentalConditions.
+/// Accepts plain floats to avoid pulling in carla/rpc/WeatherParameters.h
+/// (which drags in MsgPack → Boost).
 struct EnvironmentConverter {
 
-  /// Populate an OSI EnvironmentalConditions message from CARLA weather.
+  /// Populate an OSI EnvironmentalConditions message from CARLA weather values.
   static void ToOSI(
-      const rpc::WeatherParameters &weather,
+      float precipitation,
+      float fog_density,
+      float sun_altitude_angle,
+      float sun_azimuth_angle,
       osi3::EnvironmentalConditions &out) {
 
-    out.set_precipitation(MapPrecipitation(weather.precipitation));
-    out.set_fog(MapFog(weather.fog_density));
-    out.set_ambient_illumination(MapIllumination(weather.sun_altitude_angle));
+    out.set_precipitation(MapPrecipitation(precipitation));
+    out.set_fog(MapFog(fog_density));
+    out.set_ambient_illumination(MapIllumination(sun_altitude_angle));
 
     auto *time_of_day = out.mutable_time_of_day();
     time_of_day->set_seconds_since_midnight(
-        SunAngleToSecondsFromMidnight(weather.sun_altitude_angle,
-                                      weather.sun_azimuth_angle));
+        SunAngleToSecondsFromMidnight(sun_altitude_angle, sun_azimuth_angle));
   }
 
 private:
@@ -58,7 +62,6 @@ private:
   /// Map sun altitude to OSI AmbientIllumination enum.
   static osi3::EnvironmentalConditions::AmbientIllumination MapIllumination(
       float sun_altitude) {
-    // sun_altitude: -90 (midnight nadir) to +90 (noon zenith)
     if (sun_altitude < -18.0f) return osi3::EnvironmentalConditions::AMBIENT_ILLUMINATION_LEVEL1;
     if (sun_altitude < -12.0f) return osi3::EnvironmentalConditions::AMBIENT_ILLUMINATION_LEVEL2;
     if (sun_altitude < -6.0f)  return osi3::EnvironmentalConditions::AMBIENT_ILLUMINATION_LEVEL3;
@@ -74,11 +77,7 @@ private:
   static uint32_t SunAngleToSecondsFromMidnight(
       float altitude,
       float azimuth) {
-    // Simple model: azimuth 0°=South, 90°=West, -90°=East
-    // Map to 0-86400 seconds. Noon when altitude is maximal.
-    // This is a coarse approximation for mid-latitudes.
     (void)altitude;
-    // azimuth in CARLA: 0-360 where ~180 is roughly noon
     float hour = 12.0f + (azimuth - 180.0f) / 15.0f;
     if (hour < 0.0f) hour += 24.0f;
     if (hour >= 24.0f) hour -= 24.0f;

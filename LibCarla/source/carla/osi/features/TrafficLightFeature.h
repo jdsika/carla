@@ -6,46 +6,46 @@
 
 #pragma once
 
-#include "carla/rpc/TrafficLightState.h"
-
 #include <osi_trafficlight.pb.h>
+
+#include <cstdint>
 
 namespace carla {
 namespace osi {
 
 /// Converts CARLA traffic light states to OSI TrafficLight messages.
+/// Accepts uint8_t to avoid pulling in carla/rpc/TrafficLightState.h
+/// (which drags in MsgPack → Boost). Values match rpc::TrafficLightState.
 struct TrafficLightConverter {
 
-  /// Map a CARLA TrafficLightState enum to an OSI traffic light color.
-  static osi3::TrafficLight_Classification_Color ToOSIColor(
-      rpc::TrafficLightState state) {
+  /// Map a CARLA TrafficLightState value to an OSI traffic light color.
+  static osi3::TrafficLight::Classification::Color ToOSIColor(uint8_t state) {
     switch (state) {
-      case rpc::TrafficLightState::Red:
-        return osi3::TrafficLight_Classification_Color_COLOR_RED;
-      case rpc::TrafficLightState::Yellow:
-        return osi3::TrafficLight_Classification_Color_COLOR_YELLOW;
-      case rpc::TrafficLightState::Green:
-        return osi3::TrafficLight_Classification_Color_COLOR_GREEN;
-      case rpc::TrafficLightState::Off:
-      case rpc::TrafficLightState::Unknown:
+      case 0: // Red
+        return osi3::TrafficLight::Classification::COLOR_RED;
+      case 1: // Yellow
+        return osi3::TrafficLight::Classification::COLOR_YELLOW;
+      case 2: // Green
+        return osi3::TrafficLight::Classification::COLOR_GREEN;
+      case 3: // Off
+      case 4: // Unknown
       default:
-        return osi3::TrafficLight_Classification_Color_COLOR_UNKNOWN;
+        return osi3::TrafficLight::Classification::COLOR_UNKNOWN;
     }
   }
 
-  /// Map a CARLA TrafficLightState enum to an OSI traffic light mode.
-  static osi3::TrafficLight_Classification_Mode ToOSIMode(
-      rpc::TrafficLightState state) {
+  /// Map a CARLA TrafficLightState value to an OSI traffic light mode.
+  static osi3::TrafficLight::Classification::Mode ToOSIMode(uint8_t state) {
     switch (state) {
-      case rpc::TrafficLightState::Red:
-      case rpc::TrafficLightState::Yellow:
-      case rpc::TrafficLightState::Green:
-        return osi3::TrafficLight_Classification_Mode_MODE_CONSTANT;
-      case rpc::TrafficLightState::Off:
-        return osi3::TrafficLight_Classification_Mode_MODE_OFF;
-      case rpc::TrafficLightState::Unknown:
+      case 0: // Red
+      case 1: // Yellow
+      case 2: // Green
+        return osi3::TrafficLight::Classification::MODE_CONSTANT;
+      case 3: // Off
+        return osi3::TrafficLight::Classification::MODE_OFF;
+      case 4: // Unknown
       default:
-        return osi3::TrafficLight_Classification_Mode_MODE_UNKNOWN;
+        return osi3::TrafficLight::Classification::MODE_UNKNOWN;
     }
   }
 };

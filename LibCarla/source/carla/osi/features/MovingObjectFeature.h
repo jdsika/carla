@@ -37,28 +37,28 @@ struct ActorClassification {
     // We classify based on known substrings in the second segment.
 
     if (Contains(type_id, "bicycle") || Contains(type_id, "crossbike")) {
-      return osi3::MovingObject_VehicleClassification_TYPE_BICYCLE;
+      return osi3::MovingObject::VehicleClassification::TYPE_BICYCLE;
     }
     if (Contains(type_id, "motorcycle") || Contains(type_id, "harley")
         || Contains(type_id, "kawasaki") || Contains(type_id, "yamaha")
         || Contains(type_id, "vespa")) {
-      return osi3::MovingObject_VehicleClassification_TYPE_MOTORBIKE;
+      return osi3::MovingObject::VehicleClassification::TYPE_MOTORBIKE;
     }
     if (Contains(type_id, "firetruck") || Contains(type_id, "ambulance")) {
-      return osi3::MovingObject_VehicleClassification_TYPE_HEAVY_TRUCK;
+      return osi3::MovingObject::VehicleClassification::TYPE_HEAVY_TRUCK;
     }
     if (Contains(type_id, "truck") || Contains(type_id, "carlamotors.european_hgv")
         || Contains(type_id, "daf")) {
-      return osi3::MovingObject_VehicleClassification_TYPE_HEAVY_TRUCK;
+      return osi3::MovingObject::VehicleClassification::TYPE_HEAVY_TRUCK;
     }
     if (Contains(type_id, "bus")) {
-      return osi3::MovingObject_VehicleClassification_TYPE_BUS;
+      return osi3::MovingObject::VehicleClassification::TYPE_BUS;
     }
     if (Contains(type_id, "van") || Contains(type_id, "sprinter")) {
-      return osi3::MovingObject_VehicleClassification_TYPE_DELIVERY_VAN;
+      return osi3::MovingObject::VehicleClassification::TYPE_DELIVERY_VAN;
     }
     // Default: passenger car
-    return osi3::MovingObject_VehicleClassification_TYPE_MEDIUM_CAR;
+    return osi3::MovingObject::VehicleClassification::TYPE_MEDIUM_CAR;
   }
 
 private:

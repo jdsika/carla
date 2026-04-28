@@ -79,11 +79,12 @@ void export_osi() {
           arg("bbox_offset")),
          "Add a vehicle or pedestrian to the ground truth.")
     .def("add_traffic_light", &co::GroundTruthBuilder::AddTrafficLight,
-         (arg("id"), arg("transform"), arg("state")),
-         "Add a traffic light with its current state.")
+         (arg("id"), arg("transform"), arg("state_value")),
+         "Add a traffic light with its current state (uint8 value of TrafficLightState).")
     .def("set_environment", &co::GroundTruthBuilder::SetEnvironment,
-         (arg("weather")),
-         "Set environmental conditions from a carla.WeatherParameters.")
+         (arg("precipitation"), arg("fog_density"),
+          arg("sun_altitude_angle"), arg("sun_azimuth_angle")),
+         "Set environmental conditions from weather values.")
     .def("write_to", &BuilderBuildAndWrite,
          (arg("recorder")),
          "Build the GroundTruth and write it to the given OsiRecorder.")
