@@ -20,8 +20,30 @@
       "hidden": true
     },
     {
+      "name": "OSI",
+      "description": "Hidden base for OSI-enabled builds. Set CARLA_OSI_PREFIX and CARLA_OSI_VCPKG_INSTALLED env vars before use.",
+      "cacheVariables":
+      {
+        "ENABLE_OSI": "ON",
+        "CARLA_OSI_PREFIX": "$env{CARLA_OSI_PREFIX}",
+        "CARLA_OSI_VCPKG_INSTALLED": "$env{CARLA_OSI_VCPKG_INSTALLED}"
+      },
+      "hidden": true
+    },
+    {
       "name": "Development",
       "inherits": "Common",
+      "cacheVariables":
+      {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS" : true
+      }
+    },
+    {
+      "name": "Development-OSI",
+      "displayName": "Development with OSI",
+      "description": "RelWithDebInfo build with OSI support. Run scripts/build-osi-deps.sh first.",
+      "inherits": ["OSI", "Common"],
       "cacheVariables":
       {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
@@ -37,8 +59,29 @@
       }
     },
     {
+      "name": "Release-OSI",
+      "displayName": "Release with OSI",
+      "description": "Release build with OSI support. Run scripts/build-osi-deps.sh first.",
+      "inherits": ["OSI", "Common"],
+      "cacheVariables":
+      {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
       "name": "Debug",
       "inherits": "Common",
+      "cacheVariables":
+      {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS" : true
+      }
+    },
+    {
+      "name": "Debug-OSI",
+      "displayName": "Debug with OSI",
+      "description": "Debug build with OSI support. Run scripts/build-osi-deps.sh first.",
+      "inherits": ["OSI", "Common"],
       "cacheVariables":
       {
         "CMAKE_BUILD_TYPE": "Debug",

@@ -1,0 +1,91 @@
+name: Setup OSI Utilities
+description: >
+  Phase A of the two-phase OSI build: build and install asam-osi-utilities
+  and its dependencies (protobuf, lz4, zstd) via vcpkg into a cached prefix.
+  Sets environment variables for Phase B consumption.
+
+inputs:
+  configuration:
+    description: 'Build configuration (Release, Debug, RelWithDebInfo)'
+    required: false
+    default: 'Release'
+  triplet:
+    description: 'vcpkg triplet (auto-detected if empty)'
+    required: false
+    default: ''
+
+outputs:
+  osi-prefix:
+    description: 'Install prefix containing OSIUtilities CMake configs'
+    value: ${{ steps.paths.outputs.osi-prefix }}
+  vcpkg-installed:
+    description: 'vcpkg_installed/<triplet> directory with protobuf, lz4, zstd'
+    value: ${{ steps.paths.outputs.vcpkg-installed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Determine triplet
+      id: triplet
+      shell: bash
+      run: |
+        TRIPLET="${{ inputs.triplet }}"
+        if [[ -z "${TRIPLET}" ]]; then
+          case "${{ runner.os }}" in
+            Linux)   TRIPLET="x64-linux" ;;
+            macOS)   TRIPLET="arm64-osx" ;;
+            Windows) TRIPLET="x64-windows-static-md" ;;
+          esac
+        fi
+        echo "triplet=${TRIPLET}" >> "$GITHUB_OUTPUT"
+
+    - name: Compute paths
+      id: paths
+      shell: bash
+      run: |
+        echo "osi-prefix=${{ github.workspace }}/Build/osi-deps" >> "$GITHUB_OUTPUT"
+        echo "vcpkg-installed=${{ github.workspace }}/Build/osi-build/vcpkg_installed/${{ steps.triplet.outputs.triplet }}" >> "$GITHUB_OUTPUT"
+        echo "build-dir=${{ github.workspace }}/Build/osi-build" >> "$GITHUB_OUTPUT"
+
+    - name: Cache OSI dependencies
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          Build/osi-deps
+          Build/osi-build/vcpkg_installed
+        key: osi-utilities-${{ runner.os }}-${{ steps.triplet.outputs.triplet }}-${{ inputs.configuration }}-${{ hashFiles('externals/asam-osi-utilities/**') }}
+
+    - name: Setup vcpkg
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgGitCommitId: ''  # uses VCPKG_ROOT if already set, or bootstraps
+
+    - name: Build OSI dependencies (Phase A)
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        cmake -S externals/asam-osi-utilities \
+              -B "${{ steps.paths.outputs.build-dir }}" \
+              -G Ninja \
+              -DCMAKE_BUILD_TYPE=${{ inputs.configuration }} \
+              -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+              -DVCPKG_TARGET_TRIPLET=${{ steps.triplet.outputs.triplet }} \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_TESTING=OFF \
+              -DBUILD_DOCS=OFF
+
+        cmake --build "${{ steps.paths.outputs.build-dir }}" \
+              --config ${{ inputs.configuration }} \
+              --parallel
+
+        cmake --install "${{ steps.paths.outputs.build-dir }}" \
+              --config ${{ inputs.configuration }} \
+              --prefix "${{ steps.paths.outputs.osi-prefix }}"
+
+    - name: Export environment variables for Phase B
+      shell: bash
+      run: |
+        echo "CARLA_OSI_PREFIX=${{ steps.paths.outputs.osi-prefix }}" >> "$GITHUB_ENV"
+        echo "CARLA_OSI_VCPKG_INSTALLED=${{ steps.paths.outputs.vcpkg-installed }}" >> "$GITHUB_ENV"

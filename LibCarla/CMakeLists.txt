@@ -518,6 +518,8 @@ if (ENABLE_OSI)
     carla-osi PUBLIC
     OSIUtilities::OSIUtilities
     rpc
+    Boost::asio
+    carla-osi-external-warnings
   )
 
   target_compile_definitions (

@@ -289,16 +289,10 @@ if (BUILD_LIBCARLA_TESTS)
 endif ()
 
 if (ENABLE_OSI)
-  # ==== ASAM OSI UTILITIES ====
-  carla_dependency_option (BUILD_EXAMPLES OFF)
-  carla_dependency_option (BUILD_TESTING OFF)
-  carla_dependency_option (BUILD_DOCS OFF)
-  carla_git_dependency_add (
-    osi-utilities
-    ${CARLA_OSI_UTILITIES_TAG}
-    ""
-    https://github.com/lichtblick-suite/asam-osi-utilities.git
-  )
+  # OSI uses a two-phase build: Phase A builds asam-osi-utilities + deps via
+  # vcpkg into a prefix, Phase B (here) consumes via find_package().
+  # See scripts/build-osi-deps.sh for Phase A.
+  include (${CARLA_WORKSPACE_PATH}/CMake/OSI.cmake)
 endif ()
 
 carla_dependencies_make_available ()

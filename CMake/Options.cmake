@@ -484,16 +484,14 @@ carla_string_option (
   ${CARLA_FOONATHAN_MEMORY_VENDOR_VERSION}
 )
 
-# ==== ASAM OSI UTILITIES ====
+# ==== ASAM OSI UTILITIES (two-phase build) ====
 
-carla_string_option (
-  CARLA_OSI_UTILITIES_VERSION
-  "Target asam-osi-utilities version."
-  main
+set (
+  CARLA_OSI_PREFIX "" CACHE PATH
+  "Install prefix from Phase A OSI build (contains OSIUtilities + OSI CMake configs)."
 )
 
-carla_string_option (
-  CARLA_OSI_UTILITIES_TAG
-  "Target asam-osi-utilities git tag."
-  ${CARLA_OSI_UTILITIES_VERSION}
+set (
+  CARLA_OSI_VCPKG_INSTALLED "" CACHE PATH
+  "Path to vcpkg_installed/<triplet> from Phase A (contains protobuf, lz4, zstd)."
 )
