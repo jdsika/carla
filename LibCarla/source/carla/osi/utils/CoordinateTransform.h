@@ -47,11 +47,13 @@ struct CoordinateTransform {
   }
 
   /// Convert a CARLA rotation (degrees) to an OSI Orientation3d (radians).
-  /// CARLA: pitch (Y-axis), yaw (Z-axis), roll (X-axis) in degrees.
-  /// OSI:   roll (X-axis), pitch (Y-axis), yaw (Z-axis) in radians (ISO 8855).
+  /// CARLA uses right-hand rotations except for yaw (see CARLA docs for
+  /// carla.Rotation).  Only the yaw sign needs to be flipped; pitch and
+  /// roll keep their sign.  This matches the DLR Carla-OSI-Service convention
+  /// which has been empirically validated.
   static void ToOSI(const geom::Rotation &in, osi3::Orientation3d &out) {
     out.set_roll(static_cast<double>(in.roll) * kDegToRad);
-    out.set_pitch(static_cast<double>(-in.pitch) * kDegToRad);
+    out.set_pitch(static_cast<double>(in.pitch) * kDegToRad);
     out.set_yaw(static_cast<double>(-in.yaw) * kDegToRad);
   }
 

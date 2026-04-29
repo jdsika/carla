@@ -78,9 +78,24 @@ void export_osi() {
           arg("angular_velocity"), arg("bbox_extent"),
           arg("bbox_offset")),
          "Add a vehicle or pedestrian to the ground truth.")
+    .def("add_moving_object_extended", &co::GroundTruthBuilder::AddMovingObjectExtended,
+         (arg("id"), arg("type_id"), arg("transform"),
+          arg("velocity"), arg("acceleration"),
+          arg("angular_velocity"), arg("bbox_extent"),
+          arg("bbox_offset"), arg("light_state"),
+          arg("num_wheels"), arg("wheel_radius")),
+         "Add a vehicle with extended attributes (light state, wheel info).")
+    .def("add_stationary_object", &co::GroundTruthBuilder::AddStationaryObject,
+         (arg("id"), arg("label"), arg("name"),
+          arg("transform"), arg("bbox_extent")),
+         "Add a stationary object (building, barrier, pole, etc.).")
     .def("add_traffic_light", &co::GroundTruthBuilder::AddTrafficLight,
          (arg("id"), arg("transform"), arg("state_value")),
          "Add a traffic light with its current state (uint8 value of TrafficLightState).")
+    .def("add_traffic_sign", &co::GroundTruthBuilder::AddTrafficSign,
+         (arg("id"), arg("type"), arg("value"),
+          arg("transform"), arg("bbox_extent")),
+         "Add a traffic sign (OpenDRIVE type code and value).")
     .def("set_environment", &co::GroundTruthBuilder::SetEnvironment,
          (arg("precipitation"), arg("fog_density"),
           arg("sun_altitude_angle"), arg("sun_azimuth_angle")),

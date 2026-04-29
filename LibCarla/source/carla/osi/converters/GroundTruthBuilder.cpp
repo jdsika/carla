@@ -8,7 +8,10 @@
 
 #include "carla/osi/features/MovingObjectFeature.h"
 #include "carla/osi/features/TrafficLightFeature.h"
+#include "carla/osi/features/TrafficSignFeature.h"
 #include "carla/osi/features/EnvironmentFeature.h"
+#include "carla/osi/features/StationaryObjectFeature.h"
+#include "carla/osi/features/VehicleLightFeature.h"
 #include "carla/osi/io/MCAPRecorder.h"
 #include "carla/osi/utils/CoordinateTransform.h"
 
@@ -60,6 +63,25 @@ void GroundTruthBuilder::AddMovingObject(
     const geom::Vector3D &bbox_extent,
     const geom::Location &bbox_offset) {
 
+  AddMovingObjectExtended(
+      id, type_id, transform, velocity, acceleration,
+      angular_velocity, bbox_extent, bbox_offset,
+      /*light_state=*/0, /*num_wheels=*/0, /*wheel_radius=*/0.0f);
+}
+
+void GroundTruthBuilder::AddMovingObjectExtended(
+    uint64_t id,
+    const std::string &type_id,
+    const geom::Transform &transform,
+    const geom::Vector3D &velocity,
+    const geom::Vector3D &acceleration,
+    const geom::Vector3D &angular_velocity,
+    const geom::Vector3D &bbox_extent,
+    const geom::Location &bbox_offset,
+    uint32_t light_state,
+    uint32_t num_wheels,
+    float wheel_radius) {
+
   auto *obj = gt_.add_moving_object();
 
   // Identifier
@@ -72,6 +94,23 @@ void GroundTruthBuilder::AddMovingObject(
   if (osi_type == osi3::MovingObject::TYPE_VEHICLE) {
     auto *vc = obj->mutable_vehicle_classification();
     vc->set_type(ActorClassification::GetVehicleType(type_id));
+    vc->set_has_trailer(false);
+
+    // Vehicle light state
+    if (light_state != 0) {
+      VehicleLightConverter::ToOSI(light_state, *vc->mutable_light_state());
+    }
+
+    // Vehicle attributes
+    if (num_wheels > 0 || wheel_radius > 0.0f) {
+      auto *attrs = obj->mutable_vehicle_attributes();
+      if (num_wheels > 0) {
+        attrs->set_number_wheels(num_wheels);
+      }
+      if (wheel_radius > 0.0f) {
+        attrs->set_radius_wheel(static_cast<double>(wheel_radius));
+      }
+    }
   }
 
   // Base parameters
@@ -106,6 +145,29 @@ void GroundTruthBuilder::AddMovingObject(
   obj->set_model_reference(type_id);
 }
 
+void GroundTruthBuilder::AddStationaryObject(
+    uint64_t id,
+    uint8_t label,
+    const std::string &name,
+    const geom::Transform &transform,
+    const geom::Vector3D &bbox_extent) {
+
+  auto *obj = gt_.add_stationary_object();
+
+  obj->mutable_id()->set_value(id);
+
+  auto *classification = obj->mutable_classification();
+  classification->set_type(StationaryObjectClassification::GetType(label));
+
+  auto *base = obj->mutable_base();
+  CoordinateTransform::ToOSI(transform.location, *base->mutable_position());
+  CoordinateTransform::ToOSI(transform.rotation, *base->mutable_orientation());
+  CoordinateTransform::ExtentToOSIDimension(
+      bbox_extent, *base->mutable_dimension());
+
+  obj->set_model_reference(name);
+}
+
 void GroundTruthBuilder::AddTrafficLight(
     uint64_t id,
     const geom::Transform &transform,
@@ -122,6 +184,34 @@ void GroundTruthBuilder::AddTrafficLight(
   auto *classification = tl->mutable_classification();
   classification->set_color(TrafficLightConverter::ToOSIColor(state));
   classification->set_mode(TrafficLightConverter::ToOSIMode(state));
+}
+
+void GroundTruthBuilder::AddTrafficSign(
+    uint64_t id,
+    const std::string &type,
+    double value,
+    const geom::Transform &transform,
+    const geom::Vector3D &bbox_extent) {
+
+  auto *sign = gt_.add_traffic_sign();
+
+  sign->mutable_id()->set_value(id);
+
+  auto *main_sign = sign->mutable_main_sign();
+  auto *base = main_sign->mutable_base();
+  CoordinateTransform::ToOSI(transform.location, *base->mutable_position());
+  CoordinateTransform::ToOSI(transform.rotation, *base->mutable_orientation());
+  CoordinateTransform::ExtentToOSIDimension(
+      bbox_extent, *base->mutable_dimension());
+
+  auto *classification = main_sign->mutable_classification();
+  classification->set_type(TrafficSignClassification::GetMainSignType(type));
+
+  double speed_ms = TrafficSignClassification::GetSpeedLimitValue(type, value);
+  if (speed_ms > 0.0) {
+    auto *speed_limit = classification->mutable_value();
+    speed_limit->set_value(speed_ms);
+  }
 }
 
 void GroundTruthBuilder::SetEnvironment(

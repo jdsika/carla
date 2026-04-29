@@ -60,12 +60,48 @@ public:
       const geom::Vector3D &bbox_extent,
       const geom::Location &bbox_offset);
 
+  /// Add a moving object with extended vehicle attributes.
+  /// @param light_state   CARLA VehicleLightState bitflags (uint32_t).
+  /// @param num_wheels    Number of wheels (0 to skip).
+  /// @param wheel_radius  Wheel radius in meters (0 to skip).
+  void AddMovingObjectExtended(
+      uint64_t id,
+      const std::string &type_id,
+      const geom::Transform &transform,
+      const geom::Vector3D &velocity,
+      const geom::Vector3D &acceleration,
+      const geom::Vector3D &angular_velocity,
+      const geom::Vector3D &bbox_extent,
+      const geom::Location &bbox_offset,
+      uint32_t light_state,
+      uint32_t num_wheels,
+      float wheel_radius);
+
+  /// Add a stationary object (building, barrier, pole, etc.).
+  /// @param label  The underlying uint8_t of rpc::CityObjectLabel.
+  void AddStationaryObject(
+      uint64_t id,
+      uint8_t label,
+      const std::string &name,
+      const geom::Transform &transform,
+      const geom::Vector3D &bbox_extent);
+
   /// Add a traffic light with its current state.
   /// @param state_value  The underlying uint8_t of rpc::TrafficLightState.
   void AddTrafficLight(
       uint64_t id,
       const geom::Transform &transform,
       uint8_t state_value);
+
+  /// Add a traffic sign.
+  /// @param type       The OpenDRIVE sign type code (e.g. "274" for speed limit).
+  /// @param value      The sign's value (e.g. speed limit in km/h).
+  void AddTrafficSign(
+      uint64_t id,
+      const std::string &type,
+      double value,
+      const geom::Transform &transform,
+      const geom::Vector3D &bbox_extent);
 
   /// Set the environmental conditions from weather parameters.
   void SetEnvironment(
