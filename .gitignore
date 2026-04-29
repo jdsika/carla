@@ -39,3 +39,6 @@ _images*
 
 # Temp
 Help.md
+
+# OSI reference repositories (local development only)
+_osi_refs/

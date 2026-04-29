@@ -27,6 +27,9 @@ extern void export_ad_rss();
 #ifdef CARLA_PYTHON_API_HAS_OSM2ODR
 extern void export_osm2odr();
 #endif
+#ifdef WITH_OSI
+extern void export_osi();
+#endif
 
 BOOST_PYTHON_MODULE(carla) {
   using namespace boost::python;
@@ -53,5 +56,8 @@ BOOST_PYTHON_MODULE(carla) {
 #endif
 #ifdef CARLA_PYTHON_API_HAS_OSM2ODR
   export_osm2odr();
+#endif
+#ifdef WITH_OSI
+  export_osi();
 #endif
 }

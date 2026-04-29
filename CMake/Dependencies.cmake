@@ -288,4 +288,11 @@ if (BUILD_LIBCARLA_TESTS)
   )
 endif ()
 
+if (ENABLE_OSI)
+  # OSI uses a two-phase build: Phase A builds asam-osi-utilities + deps via
+  # vcpkg into a prefix, Phase B (here) consumes via find_package().
+  # See scripts/build-osi-deps.sh for Phase A.
+  include (${CARLA_WORKSPACE_PATH}/CMake/OSI.cmake)
+endif ()
+
 carla_dependencies_make_available ()

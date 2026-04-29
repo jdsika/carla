@@ -1,0 +1,3 @@
+[submodule "externals/asam-osi-utilities"]
+	path = externals/asam-osi-utilities
+	url = git@github.com:lichtblick-suite/asam-osi-utilities.git

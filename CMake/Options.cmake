@@ -69,6 +69,12 @@ carla_option (
 )
 
 carla_option (
+  ENABLE_OSI
+  "Enable OSI (Open Simulation Interface) GroundTruth MCAP recording via asam-osi-utilities."
+  OFF
+)
+
+carla_option (
   ENABLE_RSS
   "Enable RSS components (ad-rss-lib)"
   OFF
@@ -476,4 +482,16 @@ carla_string_option (
   CARLA_FOONATHAN_MEMORY_VENDOR_TAG
   "Target foonathan_memory_vendor git tag."
   ${CARLA_FOONATHAN_MEMORY_VENDOR_VERSION}
+)
+
+# ==== ASAM OSI UTILITIES (two-phase build) ====
+
+set (
+  CARLA_OSI_PREFIX "" CACHE PATH
+  "Install prefix from Phase A OSI build (contains OSIUtilities + OSI CMake configs)."
+)
+
+set (
+  CARLA_OSI_VCPKG_INSTALLED "" CACHE PATH
+  "Path to vcpkg_installed/<triplet> from Phase A (contains protobuf, lz4, zstd)."
 )

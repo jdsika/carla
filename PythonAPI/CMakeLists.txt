@@ -192,6 +192,13 @@ add_dependencies (
   ${PYTHON_API_DEPENDENCIES}
 )
 
+if (ENABLE_OSI)
+  add_dependencies (
+    carla-python-api
+    carla-osi
+  )
+endif ()
+
 add_dependencies (
   carla-python-api-install
   carla-python-api
