@@ -9,6 +9,8 @@
 #include <carla/osi/converters/GroundTruthBuilder.h>
 #include <carla/osi/io/MCAPRecorder.h>
 
+#include <vector>
+
 static void OpenRecorder(
     carla::osi::MCAPRecorder &self,
     const std::string &path,
@@ -27,6 +29,47 @@ static void BuilderBuildAndWrite(
     carla::osi::MCAPRecorder &recorder) {
   carla::PythonUtil::ReleaseGIL unlock;
   self.BuildAndWrite(recorder);
+}
+
+/// Helper: extract a flat float list from a Python list of carla.Location or
+/// 3-tuples, returning {x0,y0,z0, x1,y1,z1, ...}.
+static std::vector<float> ExtractPoints(const boost::python::list &py_points) {
+  namespace bp = boost::python;
+  const auto n = bp::len(py_points);
+  std::vector<float> pts;
+  pts.reserve(static_cast<size_t>(n) * 3);
+  for (bp::ssize_t i = 0; i < n; ++i) {
+    bp::object pt = py_points[i];
+    pts.push_back(bp::extract<float>(pt.attr("x")));
+    pts.push_back(bp::extract<float>(pt.attr("y")));
+    pts.push_back(bp::extract<float>(pt.attr("z")));
+  }
+  return pts;
+}
+
+static void BuilderAddLane(
+    carla::osi::GroundTruthBuilder &self,
+    uint64_t id,
+    int32_t lane_type,
+    bool is_junction,
+    const boost::python::list &centerline,
+    uint64_t left_boundary_id,
+    uint64_t right_boundary_id) {
+  auto pts = ExtractPoints(centerline);
+  self.AddLane(id, lane_type, is_junction,
+               pts.data(), static_cast<uint32_t>(pts.size() / 3),
+               left_boundary_id, right_boundary_id);
+}
+
+static void BuilderAddLaneBoundary(
+    carla::osi::GroundTruthBuilder &self,
+    uint64_t id,
+    uint8_t marking_type,
+    uint8_t marking_color,
+    const boost::python::list &points) {
+  auto pts = ExtractPoints(points);
+  self.AddLaneBoundary(id, marking_type, marking_color,
+                       pts.data(), static_cast<uint32_t>(pts.size() / 3));
 }
 
 void export_osi() {
@@ -96,6 +139,15 @@ void export_osi() {
          (arg("id"), arg("type"), arg("value"),
           arg("transform"), arg("bbox_extent")),
          "Add a traffic sign (OpenDRIVE type code and value).")
+    .def("add_lane", &BuilderAddLane,
+         (arg("id"), arg("lane_type"), arg("is_junction"),
+          arg("centerline"), arg("left_boundary_id") = 0u,
+          arg("right_boundary_id") = 0u),
+         "Add a lane with centerline points (list of carla.Location).")
+    .def("add_lane_boundary", &BuilderAddLaneBoundary,
+         (arg("id"), arg("marking_type"), arg("marking_color"),
+          arg("points")),
+         "Add a lane boundary with geometry (list of carla.Location).")
     .def("set_environment", &co::GroundTruthBuilder::SetEnvironment,
          (arg("precipitation"), arg("fog_density"),
           arg("sun_altitude_angle"), arg("sun_azimuth_angle")),

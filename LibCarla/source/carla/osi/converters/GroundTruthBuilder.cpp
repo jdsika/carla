@@ -12,6 +12,7 @@
 #include "carla/osi/features/EnvironmentFeature.h"
 #include "carla/osi/features/StationaryObjectFeature.h"
 #include "carla/osi/features/VehicleLightFeature.h"
+#include "carla/osi/features/LaneFeature.h"
 #include "carla/osi/io/MCAPRecorder.h"
 #include "carla/osi/utils/CoordinateTransform.h"
 
@@ -211,6 +212,92 @@ void GroundTruthBuilder::AddTrafficSign(
   if (speed_ms > 0.0) {
     auto *speed_limit = classification->mutable_value();
     speed_limit->set_value(speed_ms);
+  }
+}
+
+void GroundTruthBuilder::AddLane(
+    uint64_t id,
+    int32_t lane_type,
+    bool is_junction,
+    const float *centerline_xyz,
+    uint32_t num_points,
+    uint64_t left_boundary_id,
+    uint64_t right_boundary_id) {
+
+  auto *lane = gt_.add_lane();
+
+  lane->mutable_id()->set_value(id);
+
+  auto *classification = lane->mutable_classification();
+  classification->set_type(
+      LaneClassification::GetLaneType(lane_type, is_junction));
+
+  // Centerline as Vector3d points
+  for (uint32_t i = 0; i < num_points; ++i) {
+    auto *point = classification->add_centerline();
+    // Convert from UE (cm, left-hand) to OSI (m, right-hand)
+    point->set_x(
+        static_cast<double>(centerline_xyz[i * 3 + 0]) / 100.0);
+    point->set_y(
+        static_cast<double>(-centerline_xyz[i * 3 + 1]) / 100.0);
+    point->set_z(
+        static_cast<double>(centerline_xyz[i * 3 + 2]) / 100.0);
+  }
+
+  // Boundary references
+  if (left_boundary_id != 0) {
+    classification->add_left_lane_boundary_id()->set_value(left_boundary_id);
+  }
+  if (right_boundary_id != 0) {
+    classification->add_right_lane_boundary_id()->set_value(right_boundary_id);
+  }
+}
+
+void GroundTruthBuilder::AddLaneBoundary(
+    uint64_t id,
+    uint8_t marking_type,
+    uint8_t marking_color,
+    const float *points_xyz,
+    uint32_t num_points) {
+
+  osi3::LaneBoundary::Classification::Type primary, secondary;
+  LaneBoundaryClassification::GetBoundaryType(marking_type, primary, secondary);
+
+  // Primary boundary
+  auto *boundary = gt_.add_lane_boundary();
+  boundary->mutable_id()->set_value(id);
+  auto *bc = boundary->mutable_classification();
+  bc->set_type(primary);
+  bc->set_color(LaneBoundaryClassification::GetColor(marking_color));
+
+  for (uint32_t i = 0; i < num_points; ++i) {
+    auto *point = boundary->add_boundary_line();
+    point->mutable_position()->set_x(
+        static_cast<double>(points_xyz[i * 3 + 0]) / 100.0);
+    point->mutable_position()->set_y(
+        static_cast<double>(-points_xyz[i * 3 + 1]) / 100.0);
+    point->mutable_position()->set_z(
+        static_cast<double>(points_xyz[i * 3 + 2]) / 100.0);
+    // Width could be derived from LaneMarking::width but is not always reliable
+  }
+
+  // For double lines, emit a second boundary with id+1
+  if (secondary != osi3::LaneBoundary::Classification::TYPE_UNKNOWN) {
+    auto *boundary2 = gt_.add_lane_boundary();
+    boundary2->mutable_id()->set_value(id + 1);
+    auto *bc2 = boundary2->mutable_classification();
+    bc2->set_type(secondary);
+    bc2->set_color(LaneBoundaryClassification::GetColor(marking_color));
+
+    for (uint32_t i = 0; i < num_points; ++i) {
+      auto *point = boundary2->add_boundary_line();
+      point->mutable_position()->set_x(
+          static_cast<double>(points_xyz[i * 3 + 0]) / 100.0);
+      point->mutable_position()->set_y(
+          static_cast<double>(-points_xyz[i * 3 + 1]) / 100.0);
+      point->mutable_position()->set_z(
+          static_cast<double>(points_xyz[i * 3 + 2]) / 100.0);
+    }
   }
 }
 

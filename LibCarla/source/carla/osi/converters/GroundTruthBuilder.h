@@ -103,6 +103,36 @@ public:
       const geom::Transform &transform,
       const geom::Vector3D &bbox_extent);
 
+  /// Add a lane to the ground truth.
+  /// @param id            Unique lane identifier.
+  /// @param lane_type     The underlying int32_t of carla::road::Lane::LaneType.
+  /// @param is_junction   True if the lane is inside a junction.
+  /// @param centerline    Array of 3D points {{x,y,z},...} in UE coordinates.
+  /// @param num_points    Number of centerline points.
+  /// @param left_boundary_id   OSI ID of the left lane boundary (0 to skip).
+  /// @param right_boundary_id  OSI ID of the right lane boundary (0 to skip).
+  void AddLane(
+      uint64_t id,
+      int32_t lane_type,
+      bool is_junction,
+      const float *centerline_xyz,
+      uint32_t num_points,
+      uint64_t left_boundary_id,
+      uint64_t right_boundary_id);
+
+  /// Add a lane boundary to the ground truth.
+  /// @param id             Unique boundary identifier.
+  /// @param marking_type   The underlying uint8_t of LaneMarking::Type.
+  /// @param marking_color  The underlying uint8_t of LaneMarking::Color.
+  /// @param points_xyz     Array of 3D points {{x,y,z},...} in UE coordinates.
+  /// @param num_points     Number of boundary points.
+  void AddLaneBoundary(
+      uint64_t id,
+      uint8_t marking_type,
+      uint8_t marking_color,
+      const float *points_xyz,
+      uint32_t num_points);
+
   /// Set the environmental conditions from weather parameters.
   void SetEnvironment(
       float precipitation,
